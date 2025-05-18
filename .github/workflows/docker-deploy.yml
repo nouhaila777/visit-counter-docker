@@ -19,19 +19,19 @@ jobs:
       - name: Login to Azure Container Registry (ACR)
         uses: azure/docker-login@v1
         with:
-          login-server: <app_name>.azurecr.io
-          username: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          password: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and Push Docker image
         run: |
-          docker build -t <docker_image_name> .
-          docker tag <docker_image_name> <azure_container_registry_url>/<docker_image_name>
-          docker push <azure_container_registry_url>/<docker_image_name>
+          docker build -t visitcounter:v1 .
+          docker tag visitcounter:v1 ${{ secrets.ACR_LOGIN_SERVER }}/visitcounter:v1
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/visitcounter:v1
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'visit-counter-docker'
+          app-name: 'visit-counter-docker'  # ⚠️ Remplace par le nom de ton App Service exact sur Azure
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: <azure_container_registry_url>/<docker_image_name>
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/visitcounter:v1
