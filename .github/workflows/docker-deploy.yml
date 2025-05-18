@@ -1,0 +1,37 @@
+name: Deploy Dockerized App to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Azure Container Registry (ACR)
+        uses: azure/docker-login@v1
+        with:
+          login-server: <app_name>.azurecr.io
+          username: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          password: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
+      - name: Build and Push Docker image
+        run: |
+          docker build -t <docker_image_name> .
+          docker tag <docker_image_name> <azure_container_registry_url>/<docker_image_name>
+          docker push <azure_container_registry_url>/<docker_image_name>
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'visit-counter-docker'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: <azure_container_registry_url>/<docker_image_name>
